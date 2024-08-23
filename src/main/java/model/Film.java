@@ -5,9 +5,11 @@ import lombok.NonNull;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import exceptions.ValidationException;
+import ru.yandex.practicum.Filmorate.exceptions.ValidationException;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -30,6 +32,8 @@ public class Film {
 
     private String description;
 
+    public Set<String> likes = new HashSet<>();
+
     public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration) {
         this.name = name;
         this.releaseDate = releaseDate;
@@ -37,10 +41,18 @@ public class Film {
         id = ID();
         validate();
     }
+    public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration, String id) {
+        this.name = name;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.id = id;
+        validate();
+    }
     public static String ID(){
         return UUID.randomUUID().toString();
     }
     public void validate() {
+        if (id == null) {id = ID();}
         if (name == null || name.isEmpty()) {
             throw new ValidationException("Название не должно быть пустым");
         }
@@ -56,6 +68,12 @@ public class Film {
         if (duration <= 0) {
             throw new ValidationException("Продолжительность должна быть больше 0");
         }
+    }
+    public void addLike(String likeId){
+        likes.add(likeId);
+    }
+    public void removeLike(String likeId){
+        likes.remove(likeId);
     }
     public static void main(String[] args) {
         // Пример правильного фильма

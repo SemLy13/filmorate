@@ -5,9 +5,11 @@ import lombok.NonNull;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import exceptions.ValidationException;
+import ru.yandex.practicum.Filmorate.exceptions.ValidationException;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -26,7 +28,10 @@ public class User {
     private String id;
 
     private String name;
+
     private LocalDateTime birthday;
+
+    public Set<String> friends = new HashSet<>();
 
     public User(@NonNull String email, @NonNull String login, LocalDateTime birthday) {
         this.email = email;
@@ -35,10 +40,18 @@ public class User {
         id = ID();
         validate();
     }
+    public User(@NonNull String email, @NonNull String login, LocalDateTime birthday, String id) {
+        this.email = email;
+        this.login = login;
+        this.birthday = birthday;
+        this.id = id;
+        validate();
+    }
     public static String ID(){
         return UUID.randomUUID().toString();
     }
     public void validate() {
+        if (id == null) {id = ID();}
         if (email == null || email.isEmpty() || !email.contains("@")) {
             throw new ValidationException("Почта не должна быть пустой и должна содержать символ '@'");
         }
@@ -49,7 +62,13 @@ public class User {
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
     }
+    public void addFriend(String friendId) {
+        friends.add(friendId);
+    }
 
+    public void removeFriend(String friendId) {
+        friends.remove(friendId);
+    }
     public static void main(String[] args) {
         // Пример правильного пользователя
         try {
@@ -83,4 +102,6 @@ public class User {
             System.err.println("Ошибка валидации: " + e.getMessage());
         }
     }
+
+
 }
