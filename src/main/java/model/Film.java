@@ -33,12 +33,40 @@ public class Film {
     private String description;
 
     public Set<String> likes = new HashSet<>();
+    public enum Genre {
+        COMEDY,
+        DRAMA,
+        ANIMATION,
+        THRILLER,
+        DOCUMENTARY,
+        ACTION
+    }
+    public enum MPA {
+        G,        // General Audience
+        PG,       // Parental Guidance Suggested
+        PG_13,    // Parents Strongly Cautioned
+        R,        // Restricted
+        NC_17     // Adults Only
+    }
+    private Genre genre;
+    private MPA mpa;
 
-    public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration) {
+    public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration, Genre genre, MPA mpa) {
         this.name = name;
         this.releaseDate = releaseDate;
         this.duration = duration;
         id = ID();
+        this.genre = genre;
+        this.mpa = mpa;
+        validate();
+    }
+    public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration, String id, Genre genre, MPA mpa) {
+        this.name = name;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.id = id;
+        this.genre = genre;
+        this.mpa = mpa;
         validate();
     }
     public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration, String id) {
@@ -46,6 +74,13 @@ public class Film {
         this.releaseDate = releaseDate;
         this.duration = duration;
         this.id = id;
+        validate();
+    }
+    public Film(@NonNull String name, @NonNull LocalDate releaseDate, @NonNull long duration) {
+        this.name = name;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        id = ID();
         validate();
     }
     public static String ID(){

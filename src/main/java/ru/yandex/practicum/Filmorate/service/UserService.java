@@ -3,7 +3,9 @@ package ru.yandex.practicum.Filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.Filmorate.storage.UserStorage;
 
 import java.util.HashSet;
@@ -20,57 +22,65 @@ public class UserService {
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
     }
+    public void sendFriendRequest(String senderId, String receiverId) {
+        User sender = userStorage.findUserById(senderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sender not found"));
+        User receiver = userStorage.findUserById(receiverId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Receiver not found"));
 
-    public void addFriend(String userId, String friendId) {
-        Optional<User> userOpt = userStorage.findUserById(userId);
-        Optional<User> friendOpt = userStorage.findUserById(friendId);
-
-        if (userOpt.isPresent() && friendOpt.isPresent()) {
-            User user = userOpt.get();
-            User friend = friendOpt.get();
-
-            user.addFriend(friendId);
-            friend.addFriend(userId);
-
-            userStorage.updateUser(userId, user);
-            userStorage.updateUser(friendId, friend);
-
-            log.info("User {} and {} are now friends.", userId, friendId);
+        if (!sender.isFriend(receiverId) && !receiver.getFriendRequests().contains(senderId)) {
+            receiver.addFriendRequest(senderId);
+            userStorage.updateUser(receiverId, receiver);
+            log.info("User {} sent a friend request to {}", senderId, receiverId);
         } else {
-            if (!userOpt.isPresent()) {
-                log.warn("User with id {} not found.", userId);
-            }
-            if (!friendOpt.isPresent()) {
-                log.warn("User with id {} not found.", friendId);
-            }
+            log.warn("Friend request already exists or users are already friends.");
+        }
+    }
+    public void confirmFriendship(String receiverId, String senderId) {
+        User receiver = userStorage.findUserById(receiverId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Receiver not found"));
+        User sender = userStorage.findUserById(senderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sender not found"));
+
+        // Проверяем, что у получателя есть запрос дружбы от отправителя
+        if (receiver.getFriendRequests().contains(senderId)) {
+            // Добавляем каждого пользователя в список друзей другого
+            receiver.getFriends().add(senderId);
+            sender.getFriends().add(receiverId);
+
+            // Убираем запрос на дружбу из списка запросов
+            receiver.getFriendRequests().remove(senderId);
+
+            // Обновляем пользователей в хранилище
+            userStorage.updateUser(receiverId, receiver);
+            userStorage.updateUser(senderId, sender);
+
+            log.info("User {} confirmed friendship with {}", receiverId, senderId);
+        } else {
+            log.warn("No friend request from user {} to {}", receiverId);
         }
     }
 
-    // Удаление из друзей
+
     public void removeFriend(String userId, String friendId) {
-        Optional<User> userOpt = userStorage.findUserById(userId);
-        Optional<User> friendOpt = userStorage.findUserById(friendId);
+        User user = userStorage.findUserById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        User friend = userStorage.findUserById(friendId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friend not found"));
 
-        if (userOpt.isPresent() && friendOpt.isPresent()) {
-            User user = userOpt.get();
-            User friend = friendOpt.get();
-
+        if (user.isFriend(friendId)) {
             user.removeFriend(friendId);
             friend.removeFriend(userId);
 
             userStorage.updateUser(userId, user);
             userStorage.updateUser(friendId, friend);
 
-            log.info("User {} and {} are no longer friends.", userId, friendId);
+            log.info("Users {} and {} are no longer friends.", userId, friendId);
         } else {
-            if (!userOpt.isPresent()) {
-                log.warn("User with id {} not found.", userId);
-            }
-            if (!friendOpt.isPresent()) {
-                log.warn("User with id {} not found.", friendId);
-            }
+            log.warn("Users {} and {} are not friends.", userId, friendId);
         }
     }
+
 
     // Получение списка друзей пользователя
     public Set<User> getFriends(String userId) {

@@ -33,6 +33,8 @@ public class User {
 
     public Set<String> friends = new HashSet<>();
 
+    private Set<String> friendRequests = new HashSet<>();
+
     public User(@NonNull String email, @NonNull String login, LocalDateTime birthday) {
         this.email = email;
         this.login = login;
@@ -46,6 +48,17 @@ public class User {
         this.birthday = birthday;
         this.id = id;
         validate();
+    }
+    public void addFriendRequest(String userId) {
+        friendRequests.add(userId);
+    }
+    public boolean isFriend(String userId) {
+        return friends.contains(userId);
+    }
+    public void confirmFriend(String userId) {
+        if (friendRequests.remove(userId)) {
+            friends.add(userId);
+        }
     }
     public static String ID(){
         return UUID.randomUUID().toString();

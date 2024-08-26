@@ -30,15 +30,19 @@ public class UserController {
     }
 
     @PostMapping("/{id}/friends/{friendId}")
-    public ResponseEntity<Void> addFriend(@PathVariable String id, @PathVariable String friendId) {
-        userService.addFriend(id, friendId);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<Void> sendFriendRequest(@PathVariable String id, @PathVariable String friendId) {
+        userService.sendFriendRequest(id, friendId);
+        return ResponseEntity.ok().build();
     }
-
+    @PutMapping("/{id}/friends/{friendId}/confirm")
+    public ResponseEntity<Void> confirmFriendship(@PathVariable String id, @PathVariable String friendId) {
+        userService.confirmFriendship(id, friendId);
+        return ResponseEntity.ok().build();
+    }
     @DeleteMapping("/{id}/friends/{friendId}")
     public ResponseEntity<Void> removeFriend(@PathVariable String id, @PathVariable String friendId) {
         userService.removeFriend(id, friendId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/friends")
